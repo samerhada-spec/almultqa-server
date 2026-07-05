@@ -15,9 +15,6 @@ const io = socketIO(server, {
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// ==================== الرابط العام للتطبيق ====================
-const BASE_URL = 'https://almultqa-server.onrender.com';
-
 // ==================== الأمان والتشفير ====================
 // باسورد الأدمن القوي (مشفر بـ SHA-256)
 const ADMIN_PASSWORD_HASH = '8c6e2e6f3e7a5b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c';
@@ -55,7 +52,7 @@ const defaultUsers = {
     "userId": "ahmed",
     "username": "ahmed",
     "fullName": "أحمد محمد",
-    "passwordHash": crypto.createHash('sha256').update("123456").digest('hex'),
+    "passwordHash": crypto.createHash('sha256').update("user123456").digest('hex'),
     "recoveryCode": crypto.createHash('sha256').update("MLQ-USER-AH12").digest('hex'),
     "role": "user",
     "createdAt": new Date().toISOString(),
@@ -66,7 +63,7 @@ const defaultUsers = {
     "userId": "sara",
     "username": "sara",
     "fullName": "سارة خالد",
-    "passwordHash": crypto.createHash('sha256').update("123456").digest('hex'),
+    "passwordHash": crypto.createHash('sha256').update("user123456").digest('hex'),
     "recoveryCode": crypto.createHash('sha256').update("MLQ-USER-SA56").digest('hex'),
     "role": "user",
     "createdAt": new Date().toISOString(),
@@ -134,40 +131,6 @@ function createBackup() {
     });
   }
 }
-
-// ==================== صفحة ترحيب ====================
-app.get('/', (req, res) => {
-  res.send(`
-    <html>
-      <head>
-        <title>خادم الملتقى</title>
-        <meta charset="UTF-8">
-        <style>
-          body { font-family: Arial; text-align: center; padding: 50px; direction: rtl; background: #f5f5f5; }
-          .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-          h1 { color: #07C160; }
-          .status { color: #07C160; font-weight: bold; }
-          .info { background: #f0f0f0; padding: 15px; border-radius: 10px; margin: 20px 0; }
-          a { color: #07C160; text-decoration: none; }
-          a:hover { text-decoration: underline; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h1>🚀 خادم الملتقى</h1>
-          <p class="status">✅ السيرفر يعمل بنجاح!</p>
-          <div class="info">
-            <p>📡 <strong>الرابط العام:</strong> ${BASE_URL}</p>
-            <p>📁 <strong>المستخدمين المسجلين:</strong> ${Object.keys(users).length}</p>
-            <p>🟢 <strong>المستخدمين المتصلين:</strong> ${connectedUsers.size}</p>
-          </div>
-          <p>📋 <a href="/api/users">/api/users</a> - عرض المستخدمين</p>
-          <p style="color: #888; font-size: 12px; margin-top: 20px;">AlMutlqa Server v1.0.0</p>
-        </div>
-      </body>
-    </html>
-  `);
-});
 
 // ==================== API Routes ====================
 
@@ -544,29 +507,43 @@ setInterval(() => {
   createBackup();
 }, 24 * 60 * 60 * 1000);
 
-// ==================== تشغيل الخادم ====================
+// تشغيل الخادم
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`
-╔════════════════════════════════════════════════════════════════════════════════╗
-║                                                                                ║
-║     🚀 خادم الملتقى يعمل بنجاح!                                               ║
-║                                                                                ║
-║     📡 المنفذ: ${PORT}                                                            ║
-║     🌐 الرابط العام: ${BASE_URL}                                                 ║
-║                                                                                ║
-║     🔐 بيانات الدخول:                                                          ║
-║        👑 الأدمن: admin                                                       ║
-║        🔑 كلمة مرور الأدمن: Admin@2024#Secure$AlMutlqa                        ║
-║        🔐 كود الاستعادة: MLQ-8X7K-9M2P-5R6T-4W3Q                              ║
-║                                                                                ║
-║     👤 مستخدمين تجريبيين:                                                      ║
-║        - ahmed / 123456                                                       ║
-║        - sara / 123456                                                        ║
-║                                                                                ║
-║     📁 مسار البيانات: ${path.join(__dirname, 'data')}                            ║
-║     💾 النسخ الاحتياطية: ${BACKUP_DIR}                                           ║
-║                                                                                ║
-╚════════════════════════════════════════════════════════════════════════════════╝
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
+║     🚀 خادم الملتقى يعمل بنجاح!                                   ║
+║                                                                    ║
+║     📡 المنفذ: ${PORT}                                                ║
+║     🌐 IP: http://${getLocalIp()}:${PORT}                            ║
+║                                                                    ║
+║     🔐 بيانات الدخول:                                              ║
+║        👑 الأدمن: admin                                           ║
+║        🔑 كلمة مرور الأدمن: ${ADMIN_PASSWORD_HASH.substring(0,20)}...  ║
+║        🔐 كود الاستعادة: ${ADMIN_RECOVERY_CODE}                       ║
+║                                                                    ║
+║     👤 مستخدمين تجريبيين:                                          ║
+║        - ahmed / 123456                                           ║
+║        - sara / 123456                                            ║
+║                                                                    ║
+║     📁 مسار البيانات: ${path.join(__dirname, 'data')}                ║
+║     💾 النسخ الاحتياطية: ${BACKUP_DIR}                               ║
+║                                                                    ║
+╚════════════════════════════════════════════════════════════════════╝
   `);
 });
+
+function getLocalIp() {
+  const { networkInterfaces } = require('os');
+  const nets = networkInterfaces();
+  
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      if (net.family === 'IPv4' && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  return '127.0.0.1';
+}
